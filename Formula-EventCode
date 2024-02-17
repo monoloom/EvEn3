@@ -1,4 +1,6 @@
-/* EvEn 3 - Project Code Parser v0.1 */
+/*  EvEn 3 - Event Code Parser v1.0  */
+/* https://github.com/monoloom/EvEn3 */
+
 style(
     lets(
         /* Define local variables, limit props to one entry, format props as strings. */
@@ -11,7 +13,7 @@ style(
 
         (date ? date + (client ? " " : " - "): "") /* Add date */
     +   (client ? (clientCode ? (clientCode + " - ") : (client + " - ")) : "") /* Add client or clientCode */
-    +   (overwrite ? overwrite : prop("Project Name")) /* Add overwrite or Project Name */
+    +   (overwrite ? overwrite : prop("Event Name")) /* Add overwrite or Event Name */
     +   (venue && venue != client ? (venueCode ? " - " + venueCode : " - " + venue) : "") /* Add venue if venue and client are different */
 
     ),
