@@ -1,1 +1,19 @@
 /* EvEn 3 - Project Code Parser v0.1 */
+style(
+    lets(
+        /* Define local variables, limit props to one entry, format props as strings. */
+        date, formatDate(prop("Date(s)"), "YYMMDD"),
+        client, format(prop("Client").slice(0,1)),
+        clientCode, format(prop("clientCode").slice(0,1)),
+        overwrite, prop("Overwrite Code"),
+        venue, format(prop("Venue(s)").slice(0,1)),
+        venueCode, format(prop("venueCode").slice(0,1)),
+
+        (date ? date + (client ? " " : " - "): "") /* Add date */
+    +   (client ? (clientCode ? (clientCode + " - ") : (client + " - ")) : "") /* Add client or clientCode */
+    +   (overwrite ? overwrite : prop("Project Name")) /* Add overwrite or Project Name */
+    +   (venue && venue != client ? (venueCode ? " - " + venueCode : " - " + venue) : "") /* Add venue if venue and client are different */
+
+    ),
+  "c" /* Style as a code block */
+)
