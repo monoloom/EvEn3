@@ -1,0 +1,18 @@
+/*  EvEn 3 - Event Shortcode Parser v1.0  */
+/* https://github.com/monoloom/EvEn3 */
+
+style(
+    lets(
+        /* Define local variables, limit props to one entry, format props as strings. */
+        date, formatDate(prop("Date(s)"), "YYMMDD"),
+        client, format(prop("Client").slice(0,1)),
+        clientCode, format(prop("clientCode").slice(0,1)),
+        overwrite, prop("Overwrite Code"),
+
+        (date ? date + (client ? " " : " - "): "") /* Add date */
+    +   (client ? (clientCode ? (clientCode + " - ") : (client + " - ")) : "") /* Add client or clientCode */
+    +   (overwrite ? overwrite : prop("Event Name")) /* Add overwrite or Event Name */
+
+    ),
+  "c" /* Style as a code block */
+)
