@@ -1,13 +1,13 @@
-/*  EvEn 3 - Invoice Terms as Integer v1.0  */
+/*  EvEn 3 - Invoice Terms as Integer v1.1  */
 /*  https://github.com/monoloom/EvEn3       */
-
 
 lets(
     terms, prop("Terms"),
 
+    
     ifs(
         terms == "Prepay", 0,
         terms == "Due on Receipt", 0,
-        replaceAll(prop("Terms"),"\D+")
+        toNumber(replaceAll(prop("Terms"),"\D+"))
     )
 )
