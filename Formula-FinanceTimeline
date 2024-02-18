@@ -1,0 +1,255 @@
+/* CE-Invoices - Info v1.0 */
+
+lets(
+    /* Some basic definitions */
+    type, prop("Type"),
+    status, prop("Status"),
+    untilDue, prop("Days Until Due"),
+    beginDate, prop("Beginning Date"),
+    delta, prop("Date Delta"),
+
+    /* Returns an integer from Payment Terms */
+    terms, let(n, replaceAll(prop("Payment Terms"), "[^0-9]").toNumber(), empty(n) ? 0 : n),
+
+    /* Calculates days until the Beginning Date */
+    untilBegin, (
+        status == "Created" or status == "Expected" ?
+            (lets(
+                
+                today, parseDate(formatDate(now(), "YYYYMMDD")),
+                begin, parseDate(formatDate(prop("Beginning Date"), "YYYYMMDD")),
+
+                /* Calculate how many days until beginnning */
+                dateBetween(begin, today, "days")
+            )) : (
+                "Error: \nStatus isn't: Created."
+            )
+
+    ),
+
+    /* Reused logic */
+    printDelta, (
+        "\n (" + delta + (
+            delta == 1 ? " day" : " days"
+        ) + " total.)"
+    ),
+
+    printPaid, (
+        ifs(
+            delta == (terms - 1), (
+                "🟢 Paid one day early." + printDelta
+            ),
+
+            delta < terms, (
+                "🟢 Paid " + (terms - delta) + " days early." + printDelta
+            ),
+
+            delta == terms, (
+                "🟢 Paid on time." + printDelta
+            ),
+
+            delta == (terms + 1), (
+                "🟡 Paid one day late." + printDelta
+            ),
+
+            delta > terms, (
+                "🟡 Paid " + (delta - terms) + " days late." + printDelta
+            ),
+
+            "Error: \nMissing date(s)."
+        )
+
+    ),
+
+    printVoid, (
+        /* type == Void logic */
+        delta > 0 ? (
+            delta == 1 ? ("❌ Voided after one day.") : ("❌ Voided after " + delta + " days.")
+        ) : ("❌ Voided.")
+    ),
+
+    printInvalid, ("Invalid status for type:" + "\n" + type + "."),
+
+/* Info Parser */
+    type ? (
+        ifs(
+            type == "Receivable", (
+                /* Type is Receivable */
+                ifs(
+                    status == "Created", ( /* Status is Created */
+                        ifs(
+                            untilBegin > 1, (
+                                "🟢 Created: Send in " + untilBegin + " days."
+                            ),
+
+                            untilBegin == 1, (
+                                "🟢 Created: Send tomorrow."
+                            ),
+
+                            untilBegin == 0, (
+                                "🟡 Created: Send today."
+                            ),
+
+                            "🔴 Created: Not yet sent."
+                        )
+                    ),
+
+                    status == "Expected", (printInvalid), /* Status is Expected */
+
+                    status == "Sent", ( /* Status is Sent */
+                        ifs(
+                            untilDue > 1, (
+                                "🟢 Sent: Due in " + untilDue + " days."
+                            ),
+
+                            untilDue == 1, (
+                                "🟢 Sent: Due tomorrow."
+                            ),
+
+                            untilDue == 0, (
+                                "🟡 Sent: Due today."
+                            ),
+
+                            untilDue == -1, (
+                                "🔴 Sent: Due yesterday."
+                            ),
+                            untilDue < -1, (
+                                "🔴 Sent: Due " + abs(untilDue) + " days ago."
+                            ),
+                            "🔴 Sent: No Beginning Date."
+                            
+                        )
+                    ),
+
+                    status == "Received", (printInvalid), /* Status is Received */
+
+                    status == "Processing", ( /* Status is Processing */
+                        ifs(
+                            untilDue > 1, (
+                                "🟢 Processing: Due in " + untilDue + " days."
+                            ),
+
+                            untilDue == 1, (
+                                "🟢 Processing: Due tomorrow."
+                            ),
+
+                            untilDue == 0, (
+                                "🟡 Processing: Due today."
+                            ),
+
+                            untilDue == -1, (
+                                "🔴 Processing: Due yesterday."
+                            ),
+                            untilDue < -1, (
+                                "🔴 Processing: Due " + abs(untilDue) + " days ago."
+                            ),
+                            "🔴 Processing: No Beginning Date."
+                            
+                        )
+                    ),
+
+                    status == "Paid", (printPaid), /* Status is Paid */
+
+                    status == "Void", (printVoid), /* Status is Void */
+
+                    "Error: \nUnknown Status." /* Status is something else */
+
+                )
+
+            ),
+
+            type == "Payable", (
+                /* Type is Payable */
+                ifs(
+                    status == "Created", (printInvalid), /* Status is Created */
+
+                    status == "Expected", ( /* Status is Expected */
+                        ifs(
+                            untilBegin > 1, (
+                                "🟢 Expected in " + untilBegin + " days."
+                            ),
+
+                            untilBegin == 1, (
+                                "🟢 Expected: tomorrow."
+                            ),
+
+                            untilBegin == 0, (
+                                "🟡 Expected: today."
+                            ),
+
+                            untilBegin == -1, (
+                                "🔴 Expected: yesterday."
+                            ),
+                            untilBegin < -1, (
+                                "🔴 Expected: " + abs(untilBegin) + " days ago."
+                            ),
+                            "🟢 Expected"
+                            
+                        )
+                    ),
+
+                    status == "Sent", (printInvalid), /* Status is Sent */
+
+                    status == "Received", ( /* Status is Received */
+                        ifs(
+                            untilDue > 1, (
+                                "🟢 Received: Due in " + untilDue + " days."
+                            ),
+
+                            untilDue == 1, (
+                                "🟢 Received: Due tomorrow."
+                            ),
+
+                            untilDue == 0, (
+                                "🟡 Received: Due today."
+                            ),
+
+                            untilDue == -1, (
+                                "🔴 Received: Due yesterday."
+                            ),
+                            untilDue < -1, (
+                                "🔴 Received: Due " + abs(untilDue) + " days ago."
+                            ),
+                            "🔴 Received: No Beginning Date."
+                            
+                        )
+                    ),
+
+                    status == "Processing", ( /* Status is Processing */
+                        ifs(
+                            untilDue > 1, (
+                                "🟢 Processing: Due in " + untilDue + " days."
+                            ),
+
+                            untilDue == 1, (
+                                "🟢 Processing: Due tomorrow."
+                            ),
+
+                            untilDue == 0, (
+                                "🟡 Processing: Due today."
+                            ),
+
+                            untilDue == -1, (
+                                "🔴 Processing: Due yesterday."
+                            ),
+                            untilDue < -1, (
+                                "🔴 Processing: Due " + abs(untilDue) + " days ago."
+                            ),
+                            "🔴 Processing: No Beginning Date."
+                            
+                        )
+                    ),
+
+                    status == "Paid", (printPaid), /* Status is Paid */
+
+                    status == "Void", (printVoid), /* Status is Void */
+
+                    "Error: \nUnknown Status." /* Status is something else */
+
+                )
+            ),
+
+            "Error: \nUnknown Type."
+        )
+    ) : "Error: \nNo Type."
+)
