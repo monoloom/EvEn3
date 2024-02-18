@@ -1,0 +1,11 @@
+/*  EvEn 3 - Invoice Date Delta Calculator v1.0  */
+/*  https://github.com/monoloom/EvEn3            */
+
+lets(
+    /* Store normalized dates as local variables */
+    begin, parseDate(formatDate(prop("Beginning Date"), "YYYYMMDD")),
+    end, parseDate(formatDate(prop("Ending Date"), "YYYYMMDD")),
+    
+    /* Calculate the delta of begin and end */
+    dateBetween(end, begin, "days")
+)
